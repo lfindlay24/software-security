@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'forgotpw_page.dart';
+import 'vault_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +20,14 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/forgot-password': (context) => const ForgotPasswordPage(),
+        '/vault': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, String>?;
+          return VaultPage(
+            username: args?['username'] ?? '',
+            masterPassword: args?['master_password'] ?? '',
+          );
+        },
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,

@@ -1,0 +1,4 @@
+# requirements.txt for Google Cloud Functions (Password Vault)
+Flask==2.3.2
+pycryptodome==3.20.0
+google-cloud-firestore>=2.0.0

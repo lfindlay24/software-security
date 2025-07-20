@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'vault_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -37,7 +38,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _register() {
     if (_formKey.currentState!.validate()) {
-      // Send registration request
       final username = _usernameController.text;
       final password = _passwordController.text;
 
@@ -49,13 +49,20 @@ class _RegisterPageState extends State<RegisterPage> {
           },
           body: '{"username": "$username", "password": "$password"}',
         );
-        // You can handle the response here if needed
+        if (response.statusCode == 200) {
+          // On successful registration, go to vault
+          Navigator.of(context).pushReplacementNamed(
+            '/vault',
+            arguments: {'username': username, 'master_password': password},
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Registration failed: ${response.body}')),
+          );
+        }
       }
 
       sendRegisterRequest();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful!')),
-      );
     }
   }
 
