@@ -20,9 +20,9 @@ def unpad(s):
 def decrypt_aes(ciphertext_b64, key):
     data = base64.b64decode(ciphertext_b64)
     iv = data[:16]
-    ct = data[16:]
+    ciphertext = data[16:]
     cipher = AES.new(key, AES.MODE_CBC, iv)
-    pt = cipher.decrypt(ct).decode('utf-8')
+    pt = cipher.decrypt(ciphertext).decode('utf-8')
     return unpad(pt)
 
 @app.route('/get_accounts', methods=['POST'])
