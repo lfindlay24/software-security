@@ -3,6 +3,8 @@ import 'login_page.dart';
 import 'register_page.dart';
 import 'forgotpw_page.dart';
 import 'vault_page.dart';
+import 'mfa_setup_page.dart';
+import 'totp_verification_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,6 +26,22 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)!.settings.arguments
               as Map<String, String>?;
           return VaultPage(
+            username: args?['username'] ?? '',
+            masterPassword: args?['master_password'] ?? '',
+          );
+        },
+        '/mfa-setup': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, String>?;
+          return MFASetupPage(
+            username: args?['username'] ?? '',
+            masterPassword: args?['master_password'] ?? '',
+          );
+        },
+        '/totp-verification': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, String>?;
+          return TOTPVerificationPage(
             username: args?['username'] ?? '',
             masterPassword: args?['master_password'] ?? '',
           );

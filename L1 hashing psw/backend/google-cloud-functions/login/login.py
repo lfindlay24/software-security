@@ -38,7 +38,13 @@ def login_user(request):
     if doc.to_dict().get('password') != password_hash:
         return jsonify({"error": "Invalid password"}), 401
 
-    return jsonify({"message": f"User {username} logged in successfully."}), 200
+    # Check if MFA is enabled
+    mfa_enabled = doc.to_dict().get('mfa_enabled', False)
+    
+    return jsonify({
+        "message": f"User {username} logged in successfully.",
+        "mfa_enabled": mfa_enabled
+    }), 200
 
 # def get_salt(password):
 

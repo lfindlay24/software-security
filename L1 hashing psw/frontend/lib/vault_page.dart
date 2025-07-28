@@ -15,11 +15,33 @@ class VaultPage extends StatefulWidget {
 class _VaultPageState extends State<VaultPage> {
   List<Map<String, dynamic>> _accounts = [];
   bool _isLoading = false;
+  bool _mfaEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _fetchAccounts();
+    _checkMFAStatus();
+  }
+
+  Future<void> _checkMFAStatus() async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://check-mfa-status-271131837642.us-west1.run.app'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode({'username': widget.username}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _mfaEnabled = data['mfa_enabled'] ?? false;
+        });
+      }
+    } catch (e) {
+      // Handle error silently or show a notification
+      debugPrint('Failed to check MFA status: $e');
+    }
   }
 
   Future<void> _fetchAccounts() async {
@@ -144,7 +166,23 @@ class _VaultPageState extends State<VaultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Password Vault'),
+        title: Row(
+          children: [
+            const Text('Password Vault'),
+            if (_mfaEnabled) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.verified_user,
+                color: Colors.green,
+                size: 20,
+              ),
+              const Text(
+                ' (MFA)',
+                style: TextStyle(fontSize: 12, color: Colors.green),
+              ),
+            ],
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -153,6 +191,43 @@ class _VaultPageState extends State<VaultPage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddAccountDialog,
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'mfa_setup') {
+                Navigator.of(context).pushNamed(
+                  '/mfa-setup',
+                  arguments: {
+                    'username': widget.username,
+                    'master_password': widget.masterPassword
+                  },
+                );
+              } else if (value == 'logout') {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'mfa_setup',
+                child: Row(
+                  children: [
+                    Icon(Icons.security, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('Setup MFA'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Logout'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,0 +1,51 @@
+import os
+import json
+from flask import Flask, request, jsonify
+from google.cloud import firestore
+import pyotp
+
+app = Flask(__name__)
+db = firestore.Client()
+
+@app.route('/complete_mfa_setup', methods=['POST'])
+def complete_mfa_setup(request):
+    """
+    HTTP endpoint to complete MFA setup for a user.
+    Expects JSON body with 'username' and 'totp_code'.
+    """
+    request_json = request.get_json(silent=True)
+    if not request_json or 'username' not in request_json or 'totp_code' not in request_json:
+        return jsonify({"error": "Missing username or totp_code"}), 400
+
+    username = request_json['username']
+    totp_code = request_json['totp_code']
+
+    # Check if user exists
+    doc_ref = db.collection('users').document(username)
+    doc = doc_ref.get()
+    if not doc.exists:
+        return jsonify({"error": "User not found"}), 404
+
+    user_data = doc.to_dict()
+    temp_secret = user_data.get('mfa_secret_temp')
+    
+    if not temp_secret:
+        return jsonify({"error": "MFA setup not initiated"}), 400
+
+    # Verify the TOTP code
+    totp = pyotp.TOTP(temp_secret)
+    if not totp.verify(totp_code, valid_window=1):
+        return jsonify({"error": "Invalid TOTP code"}), 401
+
+    # Move temp secret to permanent and enable MFA
+    doc_ref.update({
+        'mfa_secret': temp_secret,
+        'mfa_enabled': True,
+        'mfa_secret_temp': firestore.DELETE_FIELD
+    })
+
+    return jsonify({"message": "MFA setup completed successfully"}), 200
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
