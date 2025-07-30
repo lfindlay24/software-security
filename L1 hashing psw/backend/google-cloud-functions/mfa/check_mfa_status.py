@@ -3,6 +3,8 @@ import json
 from flask import Flask, request, jsonify
 from google.cloud import firestore
 
+# This file was AI Generated
+
 app = Flask(__name__)
 db = firestore.Client()
 

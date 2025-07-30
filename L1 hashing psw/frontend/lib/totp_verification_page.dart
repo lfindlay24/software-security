@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+// This file was AI Generated
+
 class TOTPVerificationPage extends StatefulWidget {
   final String username;
   final String masterPassword;
